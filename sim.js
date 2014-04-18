@@ -29,3 +29,12 @@ function startSim(device,os){
 }
 
 exports.startSim = startSim
+//Left or Right
+exports.rotate = function(direction){
+  exec("./testsim "+direction,{},function(err,stdout,stderr){
+    console.log('stdout: ' + stdout);
+    console.log('stderr: ' + stderr);
+    if(err)
+      console.log(err)
+  })
+}

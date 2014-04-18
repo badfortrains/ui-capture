@@ -3,7 +3,7 @@ var app = express();
 var multer = require('multer');
 var exec = require('child_process').exec;
 var runner = require('./runner')
-var test = new runner.TestSuite("timeout",function(){console.log("testing done")})
+var test = new runner.TestSuite("rotate",function(){console.log("testing done")})
 
 app.use(multer({
     dest: './static/uploads/',

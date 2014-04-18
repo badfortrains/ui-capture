@@ -89,10 +89,9 @@ TestSuite.prototype.pageLoad = function(){
     this.currentOffer++
   }else{
     console.log("TAKE THE SCREENSHOT",this.currentOffer)
-    var fileString = DEVICES[this.deviceIndex]+"_"+this.osVersion+"_"
-    setTimeout(function(){
-      this.chrome.Runtime.evaluate({expression:"var ad = new Tapjoy.AdUnit({});ad.bridge.send('takeScreenShot',{fileName:'"+fileString+"_"+TEST_URLS[this.currentOffer].name+"'},function(){});"})
-    }.bind(this),500)
+    this.chrome.Runtime.evaluate({expression:"var ad = new Tapjoy.AdUnit({});$(window).on('resize',function(){ad.bridge.send('takeScreenShot',{orientation: $(window).width() > $(window).height() ? 'landscape' : 'portrait'},function(){})})"})
+    console.log("rotate right")
+    sim.rotate("Right")
   }
 }
 
@@ -100,17 +99,24 @@ TestSuite.prototype.upload = function(req,res){
   if(!this.isRunning)
     return;
 
- 
-  fs.rename(req.files.file.path,'./tests/'+this.folderName+'/'+req.body.fileName.replace(" ","_")+'.jpeg',function(err){
+  var fileString = DEVICES[this.deviceIndex]+"_"+this.osVersion+"_"+req.body.orientation+"_"
+  fs.rename(req.files.file.path,'./tests/'+this.folderName+'/'+fileString.replace(" ","_")+'.jpeg',function(err){
     if(err){
       console.log(err);
     }else{
-      this.currentOffer++
-      if(this.currentOffer < TEST_URLS.length){
-        console.log("go to offer",this.currentOffer)
-        this.chrome.Page.navigate({'url': TEST_URLS[this.currentOffer].url})
-      }else
-        this.nextDevice()      
+      console.log(req.body.orientation)
+      console.log("upload",this.currentOffer)
+      if(req.body.orientation == 'landscape'){
+          console.log("rotate left")
+          sim.rotate("Left")
+      }else{
+        this.currentOffer++
+        if(this.currentOffer < TEST_URLS.length){
+          console.log("go to offer",this.currentOffer)
+          this.chrome.Page.navigate({'url': TEST_URLS[this.currentOffer].url})
+        }else
+          this.nextDevice()      
+      }
       res.send(201)
     }
   }.bind(this))
