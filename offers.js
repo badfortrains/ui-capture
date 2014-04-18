@@ -3,9 +3,9 @@ var sqlite3 = (process.env.NODE_ENV == "development") ? require('sqlite3').verbo
 
 
 db.serialize(function(){
-  var TABLE = "CREATE TABLE IF NOT EXISTS offers (id INTEGER PRIMARY KEY, offer_id TEXT, description TEXT, type TEXT"
+  var TABLE = "CREATE TABLE IF NOT EXISTS offers (id INTEGER PRIMARY KEY, offer_id TEXT, description TEXT, type TEXT)"
   db.run(TABLE)
-  seedDB();
+  //seedDB();
 });
 
 function seedDB(){
@@ -28,4 +28,13 @@ function seedDB(){
   }
 }
 
-moudle.exports =db;
+exports.getAll = function(cb){
+  db.all("SELECT * FROM offers",function(err,data){
+    cb(err,data)
+  })
+}
+exports.insert = function(offer_id,description,type,cb){
+  var insert = db.prepare("INSERT INTO offers VALUES (NULL,?,?,?)");
+  insert.run(offer_id,description,type,cb)
+}
+exports.db = db;
