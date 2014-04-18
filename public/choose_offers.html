@@ -28,7 +28,7 @@
 
     <script id="entry-template" type="text/x-handlebars-template">
       {{#each offers}}
-        <tr item_id="{{id}}">
+        <tr item_id="{{id}}" id="offer_{{id}}">
           <td>{{description}}</td>
           <td> {{type}} </td>
           <td>{{offer_id}} </td>
@@ -46,51 +46,10 @@
       });
     </script>
 
-    <script>
-      $(function(){
-        var entry = $("#entry-template").html();
-        var entry_template = Handlebars.compile(entry);
-
-        $.ajax({
-          url: "/offers",
-          success: function(data){
-            $("table").append(entry_template({offers:data}));
-          }
-        })
-        $("table").on("click",".removeIt",function(e){
-          var row = $(e.currentTarget).parent().parent();
-          $.ajax({
-            url:"/offers/"+row.attr("item_id"),
-            type: "DELETE",
-            success: function(){
-              row.remove();
-            }
-          })
-        })
-
-        $(".addIt").click(function(){
-          var type = $("#type").val(),
-              description = $("#description").val(),
-              offer_id = $("#offer_id").val(),
-              data = {type:type, description:description, offer_id:offer_id}
-          $.ajax({
-            url: "/offers",
-            type: "POST",
-            data: data,
-            success:function(res){
-              data.id = res.id
-              $("table").append(entry_template({offers:[data]}));
-            },
-            error:function(){
-              alert("error adding offer")
-            }
-          })
-        })
-
-      })
-    </script>
+    <script src="/choose.js"></script>
   </head>
   <body>
+    <input id="base_url" style="width:300px;font-size:14px" placeholder="https://ws.tapjoyads.com" type="text"></input>
     <table>
       <thead>
         <tr>
@@ -111,6 +70,13 @@
         </tr>
       </tfoot>
     </table>
-    
+
+    <div class="runSim">RUN THE SIM</div>
+
+
+
   </body>
+
+
+
 </html>

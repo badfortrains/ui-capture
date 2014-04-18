@@ -40,10 +40,10 @@ app.get('/started',function(req,res){
 
 app.use(express.static(__dirname + '/public'));
 
-app.get('/run/:name/:id',function(req,res){
+app.post('/run/:name/:id',function(req,res){
   var id = req.params.id,
       name = req.params.name
-  var t = new runner.TestSuite(name,id,function(){
+  var t = new runner.TestSuite(name,id,req.body.urls,function(){
     if(simRun == t.runID)
       simRun = undefined;
     delete test[t.runID];
