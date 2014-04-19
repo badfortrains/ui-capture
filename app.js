@@ -7,6 +7,7 @@ var exec = require('child_process').exec;
 var runner = require('./runner')
 var connect = require('connect')
 var offers = require('./offers')
+var devices = require('./devices')
 var test = []
 var simRun;
 //var test = new runner.TestSuite("rotate",function(){console.log("testing done")})
@@ -41,9 +42,14 @@ app.get('/started',function(req,res){
 app.use(express.static(__dirname + '/public'));
 
 app.post('/run/:name/:id',function(req,res){
-  var id = req.params.id,
-      name = req.params.name
-  var t = new runner.TestSuite(name,id,req.body.urls,function(){
+  var options = {
+    name: req.params.name,
+    id: req.params.id,
+    urls: req.body.urls,
+    devices: req.body.devices
+  }
+  console.log(options)
+  var t = new runner.TestSuite(options,function(){
     if(simRun == t.runID)
       simRun = undefined;
     delete test[t.runID];
@@ -100,10 +106,21 @@ app.delete('/offers/:id',function(req,res){
   })
 })
 
+app.get('/devices',devices.all);
+
 io.sockets.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
-  socket.on('my other event', function (data) {
-    console.log(data);
+  socket.on('run', function (options) {
+    console.log(options)
+    options.socket = socket;
+    var t = new runner.TestSuite(options,function(){
+      if(simRun == t.runID)
+        simRun = undefined;
+      delete test[t.runID];
+      console.log("All done")
+    })
+    test[t.runID] = t;
+    if(t.isSimulator)
+      simRun = t.runID
   });
 });
 

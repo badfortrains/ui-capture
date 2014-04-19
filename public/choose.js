@@ -1,15 +1,35 @@
 $(function(){
   var entry = $("#entry-template").html();
   var entry_template = Handlebars.compile(entry);
+  var device_entry = $("#device-entry").html();
+  var device_template = Handlebars.compile(device_entry);
   var all_offers = [];
+  var all_devices = [];
 
   $.ajax({
     url: "/offers",
     success: function(data){
-      $("table").append(entry_template({offers:data}));
+      $("tbody").append(entry_template({offers:data}));
       all_offers = data;
     }
   })
+
+  Toast = function(message){
+    $(".info").html(message);
+    $(".info").show();
+    setTimeout(function(){
+      $(".info").hide()
+    },3000)
+  }
+
+  $.ajax({
+    url: "/devices",
+    success:function(data){
+      $("#devices").append(device_template({devices:data}))
+      all_devices = data
+    }
+  })
+
   $("table").on("click",".removeIt",function(e){
     var row = $(e.currentTarget).parent().parent();
     $.ajax({
@@ -42,12 +62,33 @@ $(function(){
   })
 
   $(".runSim").click(function(){
-    $.ajax({
-      url: "/run/testme/SIMULATOR",
-      data: {urls: generateURLs()},
-      type: "POST"
-    })
+    var urls = generateURLs(),
+        name = $("#testName").val(),
+        devices = getDevices(urls);
+
+    $("#screenshots").html("")
+    Toast("Running tests "+name+" "+urls.length+" offer pages on "+devices.length+" devices")
+    socket.emit("run",{name:name,urls:urls, devices:devices})
+    // $.ajax({
+    //   url: "/run/testme/SIMULATOR",
+    //   data: {urls: generateURLs(), devices: getDevices()},
+    //   type: "POST"
+    // })
   })
+
+  function getDevices(urls){
+    var devices = [],
+        checks = $("#devices input");
+    $("#devices .done").html(0)
+    $("#devices .total").html(0)
+    for(var i=0;i<all_devices.length;i++){
+      if(checks[i].checked){
+        devices.push(all_devices[i])
+        $($("#devices .total")[i]).html(urls.length)
+      }
+    }
+    return devices
+  }
 
   function generateURLs(){
     var completeUrl = "/videos/OFFERID/complete",
@@ -68,5 +109,24 @@ $(function(){
     return urls;
   }
 
+  socket.on("progress",function(data){
+    var devices = $("#devices input").filter(function(){
+      return this.checked
+    })
+    var row = $(devices[data.index]).parent().parent()
+    var numDone = parseFloat(row.find(".done").html())+1
+    var numTotal = parseFloat(row.find(".total").html())
+    var device  = $(row.find("td")[0]).html()
+
+    Toast(device + " completed "+numDone+" of "+numTotal)
+    row.find(".done").html(numDone)
+  })
+  socket.on("screenshot",function(data){
+    var width = $("#screenshots").append("<img src="+data.filePath+"></img>").width()
+    $("#screenshots").width(width+800)
+  })
+  socket.on("done",function(){
+    Toast("All tests complete!")
+  })
 
 })
