@@ -12,6 +12,8 @@ var test = []
 var simRun;
 //var test = new runner.TestSuite("rotate",function(){console.log("testing done")})
 
+exec('ios_webkit_debug_proxy');
+
 app.use(connect.urlencoded());
 app.use(multer({
     dest: './static/uploads/',
